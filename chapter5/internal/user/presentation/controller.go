@@ -1,13 +1,12 @@
 package presentation
 
 import (
-	"crypto/md5"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"gopkg.in/go-playground/validator.v9"
 
+	hashApplication "github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/hash/application"
 	"github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/user/application"
 	"github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/user/domain"
 )
@@ -52,13 +51,15 @@ func (j registrationJSON) toEntity() domain.User {
 type UserController struct {
 	registration application.RegistrationUseCase
 	validate     *validator.Validate
+	hashService  hashApplication.HashService
 }
 
 // NewUserController creates new UserController
-func NewUserController(registration application.RegistrationUseCase, validate *validator.Validate) *UserController {
+func NewUserController(registration application.RegistrationUseCase, validate *validator.Validate, hashService hashApplication.HashService) *UserController {
 	return &UserController{
 		registration: registration,
 		validate:     validate,
+		hashService:  hashService,
 	}
 }
 
@@ -76,10 +77,9 @@ func (c *UserController) Register(ctx *gin.Context) {
 		return
 	}
 
-	passwordData := []byte(registrationData.Password)
-	hash := fmt.Sprintf("%x", md5.Sum(passwordData))
+	password := c.hashService.Do(registrationData.Password)
 
-	result, err := c.registration.Execute(ctx, registrationData.toEntity(), hash)
+	result, err := c.registration.Execute(ctx, registrationData.toEntity(), password)
 	if err != nil {
 		switch err {
 		case application.RegistrationUseCaseUserAlreadyCreated:

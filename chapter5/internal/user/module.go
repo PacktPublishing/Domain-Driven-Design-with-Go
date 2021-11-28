@@ -8,6 +8,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
+	hashApplication "github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/hash/application"
 	"github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/user/application"
 	"github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/user/infrastructure"
 	"github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/user/presentation"
@@ -17,7 +18,7 @@ import (
 type Module struct{}
 
 // Configure setups all dependencies
-func (m *Module) Configure(databasePath string, engine *gin.Engine, validate *validator.Validate) {
+func (m *Module) Configure(databasePath string, engine *gin.Engine, validate *validator.Validate, service hashApplication.HashService) {
 	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
@@ -25,6 +26,6 @@ func (m *Module) Configure(databasePath string, engine *gin.Engine, validate *va
 
 	repository := infrastructure.NewUserRepository(db)
 	useCase := application.NewRegistrationUseCase(repository)
-	controller := presentation.NewUserController(useCase, validate)
+	controller := presentation.NewUserController(useCase, validate, service)
 	engine.POST("/users", controller.Register)
 }

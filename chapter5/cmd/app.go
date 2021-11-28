@@ -3,6 +3,8 @@ package main
 import (
 	"log"
 
+	"github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/hash"
+
 	"github.com/gin-gonic/gin"
 	"gopkg.in/go-playground/validator.v9"
 
@@ -14,9 +16,13 @@ func main() {
 	validate := validator.New()
 	engine := gin.Default()
 
+	// creates new hash module
+	hashModule := &hash.Module{}
+	hashModule.Configure("super-secret-value")
+
 	// creates new user module
-	module := &user.Module{}
-	module.Configure("./database.sqlite", engine, validate)
+	userModule := &user.Module{}
+	userModule.Configure("./database.sqlite", engine, validate, hashModule.GetHashService())
 
 	// run server
 	log.Fatalln(engine.Run())
