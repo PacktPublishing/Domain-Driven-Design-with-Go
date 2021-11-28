@@ -1,11 +1,8 @@
 package user
 
 import (
-	"log"
-
 	"github.com/gin-gonic/gin"
 	"gopkg.in/go-playground/validator.v9"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	hashApplication "github.com/PacktPublishing/Domain-Driven-Design-with-Go/chapter5/internal/hash/application"
@@ -18,12 +15,7 @@ import (
 type Module struct{}
 
 // Configure setups all dependencies
-func (m *Module) Configure(databasePath string, engine *gin.Engine, validate *validator.Validate, service hashApplication.HashService) {
-	db, err := gorm.Open(sqlite.Open(databasePath), &gorm.Config{})
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func (m *Module) Configure(db *gorm.DB, engine *gin.Engine, validate *validator.Validate, service hashApplication.HashService) {
 	repository := infrastructure.NewUserRepository(db)
 	useCase := application.NewRegistrationUseCase(repository)
 	controller := presentation.NewUserController(useCase, validate, service)
